@@ -1,0 +1,3 @@
+[submodule "universal-portfolios"]
+	path = universal-portfolios
+	url = https://github.com/Marigold/universal-portfolios.git
