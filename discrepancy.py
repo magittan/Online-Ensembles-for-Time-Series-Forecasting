@@ -1,5 +1,5 @@
-from Projective_Gradient_Descent import gd
-from Expert_Prediction.online_experts import *
+from projective_gradient_descent import gd
+from expert_prediction.online_experts import *
 import numpy as np
 
 def time_dependent_loss(hypotheses_seq, expert_predictions, actual_values,loss_func=None):

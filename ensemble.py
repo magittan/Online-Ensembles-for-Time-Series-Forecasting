@@ -84,8 +84,6 @@ class EnsembleForecaster(object):
                                       
         return np.array(online_predictions)
     
-# Test Methods
-    
 def calculate_losses(predicted,actual,loss_func = None):
     assert len(predicted)==len(actual)
     total_length = len(predicted)

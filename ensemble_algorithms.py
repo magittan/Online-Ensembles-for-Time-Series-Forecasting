@@ -1,5 +1,5 @@
-from Expert_Prediction.online_experts import *
-from Projective_Gradient_Descent import gd
+from expert_prediction.online_experts import *
+from projective_gradient_descent import gd
 import discrepancy as disc
 from scipy.optimize import nnls
 import numpy as np
