@@ -33,11 +33,50 @@ def project_to_simplex(x):
     output/=np.sum(output)
     return output
 
-def projective_simplex_gradient_descent(q, loss_func, iterations=1000,eta=0.001):
+def projective_simplex_gradient_descent(q, loss_func, iterations=1000,eta=0.001,epsilon=0.01,noise=0.001):
     q_0 = q.copy()
     for i in range(iterations):
-        grad = calculate_gradient(loss_func,q_0,epsilon=0.01)
+        grad = calculate_gradient(loss_func,q_0,epsilon=epsilon,noise_factor=noise)
+        if np.isnan(grad.any()):
+            raise ValueError('gradient went to nan')
         q_0 = q_0-eta*grad
         q_0 = project_to_simplex(q_0)
+        if np.isnan(q_0.any()):
+            raise ValueError('q_0 went to nan')
+        
+    return q_0
+
+def decider(t,sorted_x):
+    t_hat = None
+    for i in range(len(t)-1):
+        if t[i]>=sorted_x[::-1][i+1]:
+            return t[i]
+    t_hat = t[-1]
+    return t_hat
+
+def project_to_simplex_2(x):
+    sorted_x = sorted(x)
+    t = [np.sum((np.array(sorted_x[-i:])-1)/i) for i in range(1,len(sorted_x)+1)]
+    t_hat = decider(t,sorted_x)
+    output = _plus(x-decider(t,sorted_x))
+    output/=np.sum(output)
+    
+    return output
+
+def projective_simplex_gradient_descent_2(q, loss_func, iterations=1000,eta=0.001,epsilon=0.01,noise=0.001):
+    q_0 = q.copy()
+    for i in range(iterations):
+        grad = calculate_gradient(loss_func,q_0,epsilon=epsilon,noise_factor=noise)
+        q_0 = q_0-eta*grad
+        q_0 = project_to_simplex_2(q_0)
+        
+    return q_0
+
+def projective_simplex_gradient_ascent_2(q, loss_func, iterations=1000,eta=0.001,epsilon=0.01,noise=0.001):
+    q_0 = q.copy()
+    for i in range(iterations):
+        grad = calculate_gradient(loss_func,q_0,epsilon=epsilon,noise_factor=noise)
+        q_0 = q_0+eta*grad
+        q_0 = project_to_simplex_2(q_0)
         
     return q_0

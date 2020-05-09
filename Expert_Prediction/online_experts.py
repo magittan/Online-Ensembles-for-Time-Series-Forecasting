@@ -71,7 +71,7 @@ class OnlineHedgeDoubling(OnlineHedge):
             f = lambda x: np.exp(-self.epsilon*x)
             self._modify_weights(np.prod(f(losses),0))
             
-class OnlineHedgeIncrementalTime(OnlineHedge):
+class OnlineHedgeIncremental(OnlineHedge):
 
     def __init__(self,n=10,a=1,loss_func=None):
         super().__init__(n=n,T=None,a=a,loss_func=loss_func)
@@ -97,7 +97,7 @@ class NormalHedge(OnlineHedge):
         super().__init__(n=n,T=None,a=a,loss_func=loss_func)
         self.R = np.zeros(n)
     
-    def _update(self, expert_predictions, actual_values):
+    def _update(self, expert_predictions, actual_values,low_c=0.01):
         
         assert expert_predictions.shape[1]==len(actual_values), "Time Dimension Matches"
         
@@ -111,21 +111,23 @@ class NormalHedge(OnlineHedge):
             
             self.R += instant_regret
             
-            self._update_weights()
-    
-    def _update_weights(self):
+            self._update_weights(low_c=low_c)
+        
+    def _update_weights(self,low_c=0.01):
         # Calculating Normalizing Constant
         R_plus = np.array(list(map(lambda x: 0 if 0 > x else x , self.R)))
+        normalizing_R = np.max(R_plus)
         
-        print(R_plus)
+        R_plus /= normalizing_R
         
-        low_c = 1e-8
+        low_c = low_c
         high_c = (max(R_plus)**2)/2
         pot = lambda c: np.mean(np.exp((R_plus**2)/(2*c)))-np.e
         
         c_t = bisection(low_c,high_c,pot)
         
-        print(c_t)
+#         print("CT = {}".format(c_t))
+#         print("Pot = {}".format(pot(c_t)))
         
         # Calculating Probabilities
         prob = lambda r, c_t: (r/c_t)*np.exp((r**2)/(2*c_t))
@@ -133,11 +135,9 @@ class NormalHedge(OnlineHedge):
         self.weights = np.array([prob(r,c_t) for r in R_plus])
         self.weights /= np.sum(self.weights)
         
-        print(self.weights)
-        
 class FollowTheLeader(object):
     
-    def __init__(self,n=10, loss_func=None):
+    def __init__(self,n=10,loss_func=None):
         self.losses = np.zeros(n)
         self.loss_func = loss_func
         
